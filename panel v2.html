@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PANEL FF BY ZUAN V2 - CROSSHAIR PERMANEN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 10px;
+            color: #fff;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ========== CROSSHAIR SUPER EKSTREM ========== */
+        /* Menggunakan fixed position dengan z-index tertinggi */
+        .crosshair-ekstrem {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2147483647; /* Z-index maksimum */
+            display: none;
+            background: transparent;
+        }
+
+        .crosshair-ekstrem.active {
+            display: block;
+        }
+
+        /* Crosshair utama */
+        .crosshair-utama {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: var(--crosshair-size, 40px);
+            height: var(--crosshair-size, 40px);
+            z-index: 2147483647;
+            pointer-events: none;
+            will-change: transform; /* Optimasi untuk performa */
+        }
+
+        /* Style crosshair */
+        .crosshair-default {
+            border: var(--crosshair-thickness, 2px) solid var(--crosshair-color, #ff0000);
+            border-radius: 50%;
+            background: transparent;
+            box-shadow: 0 0 var(--crosshair-glow, 10px) var(--crosshair-color, #ff0000);
+        }
+
+        .crosshair-default::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: var(--crosshair-dot-size, 4px);
+            height: var(--crosshair-dot-size, 4px);
+            background: var(--crosshair-color, #ff0000);
+            border-radius: 50%;
+            box-shadow: 0 0 var(--crosshair-glow, 10px) var(--crosshair-color, #ff0000);
+        }
+
+        .crosshair-cross {
+            position: relative;
+        }
+
+        .crosshair-cross::before,
+        .crosshair-cross::after {
+            content: '';
+            position: absolute;
+            background: var(--crosshair-color, #ff0000);
+            box-shadow: 0 0 var(--crosshair-glow, 10px) var(--crosshair-color, #ff0000);
+        }
+
+        .crosshair-cross::before {
+            width: var(--crosshair-size, 40px);
+            height: var(--crosshair-thickness, 2px);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .crosshair-cross::after {
+            height: var(--crosshair-size, 40px);
+            width: var(--crosshair-thickness, 2px);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .crosshair-dot {
+            border-radius: 50%;
+            background: var(--crosshair-color, #ff0000);
+            box-shadow: 0 0 var(--crosshair-glow, 20px) var(--crosshair-color, #ff0000);
+        }
+
+        .crosshair-circle {
+            border: var(--crosshair-thickness, 2px) solid var(--crosshair-color, #ff0000);
+            border-radius: 50%;
+            background: transparent;
+            box-shadow: 0 0 var(--crosshair-glow, 10px) var(--crosshair-color, #ff0000);
+        }
+
+        .crosshair-circle-dot {
+            border: var(--crosshair-thickness, 2px) solid var(--crosshair-color, #ff0000);
+            border-radius: 50%;
+            background: transparent;
+            box-shadow: 0 0 var(--crosshair-glow, 10px) var(--crosshair-color, #ff0000);
+        }
+
+        .crosshair-circle-dot::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: calc(var(--crosshair-dot-size, 4px) * 2);
+            height: calc(var(--crosshair-dot-size, 4px) * 2);
+            background: var(--crosshair-color, #ff0000);
+            border-radius: 50%;
+            box-shadow: 0 0 var(--crosshair-glow, 10px) var(--crosshair-color, #ff0000);
+        }
+
+        .crosshair-plus {
+            position: relative;
+        }
+
+        .crosshair-plus::before,
+        .crosshair-plus::after {
+            content: '';
+            position: absolute;
+            background: var(--crosshair-color, #ff0000);
+            box-shadow: 0 0 var(--crosshair-glow, 10px) var(--crosshair-color, #ff0000);
+        }
+
+        .crosshair-plus::before {
+            width: calc(var(--crosshair-size, 40px) * 0.6);
+            height: var(--crosshair-thickness, 2px);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .crosshair-plus::after {
+            height: calc(var(--crosshair-size, 40px) * 0.6);
+            width: var(--crosshair-thickness, 2px);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Overlay permission warning */
+        .permission-warning {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(255, 215, 0, 0.9);
+            color: #000;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            z-index: 2147483646;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 2px solid #ffd700;
+        }
+
+        .permission-warning.show {
+            display: block;
+            animation: slideUp 0.5s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .permission-btn {
+            background: #00ffff;
+            color: #000;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        /* ========== LAYOUT ========== */
+        .login-page {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 30px 20px;
+            border: 1px solid rgba(0,255,255,0.3);
+            box-shadow: 0 0 50px rgba(0,255,255,0.2);
+            width: 100%;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .login-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #00ffff, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-header p {
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .logo-nobita {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #00ffff, #0066ff);
+            border-radius: 25px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            box-shadow: 0 0 30px rgba(0,255,255,0.5);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ffff;
+            font-size: 13px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0,255,255,0.3);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #00ffff, #0066ff);
+            border: none;
+            border-radius: 10px;
+            color: #0f2027;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,255,255,0.4);
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 15px;
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        /* HOME PAGE */
+        .home-page {
+            display: none;
+        }
+
+        .status-bar {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #00ffff;
+        }
+
+        .status-led {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+            box-shadow: 0 0 15px #00ff00;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            color: #00ff00;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-info {
+            color: #aaa;
+            font-size: 11px;
+        }
+
+        .main-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 15px;
+            text-align: center;
+            border: 1px solid #00ffff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .main-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,255,255,0.3);
+        }
+
+        .main-icon {
+            font-size: 60px;
+            color: #00ffff;
+            margin-bottom: 15px;
+        }
+
+        .main-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .main-subtitle {
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        .badge {
+            background: rgba(0,255,255,0.2);
+            border: 1px solid #00ffff;
+            border-radius: 50px;
+            padding: 5px 12px;
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 11px;
+        }
+
+        .device-info {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid #333;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            color: #aaa;
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        .info-value {
+            color: #00ffff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* MODAL MENU */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 20px 15px;
+            max-width: 95%;
+            width: 100%;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 50px rgba(0,255,255,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: auto;
+        }
+
+        @media (orientation: landscape) {
+            .modal-content {
+                max-width: 90%;
+                max-height: 85vh;
+                padding: 15px;
+            }
+            
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .ff-buttons-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .color-picker {
+                justify-content: center;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-title i {
+            color: #00ffff;
+            margin-right: 5px;
+        }
+
+        .close-btn {
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close-btn:hover {
+            color: #00ffff;
+        }
+
+        .search-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-box i {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .search-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 13px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+        }
+
+        .app-info {
+            background: linear-gradient(45deg, #00ffff20, #0066ff20);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #00ffff, #0066ff);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .app-details {
+            flex: 1;
+        }
+
+        .app-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .app-version {
+            color: #aaa;
+            font-size: 11px;
+        }
+
+        .app-badge {
+            background: rgba(0,255,0,0.2);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 2px 6px;
+            font-size: 10px;
+        }
+
+        .device-status {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .status-label {
+            color: #aaa;
+        }
+
+        .status-value {
+            font-weight: 600;
+        }
+
+        .online {
+            color: #00ff00;
+        }
+
+        /* FREE FIRE BUTTONS SECTION */
+        .ff-buttons-section {
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #00ffff;
+        }
+
+        .ff-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .ff-button {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .ff-button.ori {
+            background: linear-gradient(45deg, #ff8c00, #ff4d4d);
+        }
+
+        .ff-button.max {
+            background: linear-gradient(45deg, #ff4d4d, #cc0000);
+        }
+
+        .ff-button:hover {
+            transform: translateY(-3px);
+            border-color: #00ffff;
+            box-shadow: 0 5px 15px rgba(0,255,255,0.3);
+        }
+
+        .ff-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .ff-name {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .ff-desc {
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        .ff-note {
+            font-size: 9px;
+            color: #00ffff;
+            margin-top: 3px;
+        }
+
+        /* MENU AIM Section */
+        .menu-section {
+            margin-bottom: 15px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .menu-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .menu-item:hover {
+            border-color: #00ffff;
+            background: rgba(0,255,255,0.05);
+        }
+
+        .menu-item.active {
+            border: 2px solid #00ffff;
+            background: rgba(0,255,255,0.1);
+        }
+
+        .menu-item-icon {
+            font-size: 18px;
+            color: #00ffff;
+            margin-bottom: 5px;
+        }
+
+        .menu-item-name {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .menu-item-desc {
+            font-size: 9px;
+            color: #aaa;
+            line-height: 1.2;
+        }
+
+        .menu-item-toggle {
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+        }
+
+        .toggle-switch {
+            width: 28px;
+            height: 14px;
+            background: #333;
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle-switch.active {
+            background: #00ffff;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 16px;
+        }
+
+        /* CROSSHAIR CUSTOMIZER SECTION */
+        .crosshair-section {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(0,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid #00ffff;
+        }
+
+        .crosshair-preview {
+            width: 80px;
+            height: 80px;
+            margin: 8px auto;
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+
+        .crosshair-preview .preview-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 25px;
+            height: 25px;
+            border: 2px solid #ff0000;
+            border-radius: 50%;
+        }
+
+        .crosshair-preview .preview-crosshair::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 4px;
+            background: #ff0000;
+            border-radius: 50%;
+        }
+
+        .crosshair-control {
+            margin-bottom: 12px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 4px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .control-slider input {
+            width: 100%;
+            height: 100%;
+            -webkit-appearance: none;
+            background: transparent;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .control-slider input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #00ffff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            justify-content: center;
+        }
+
+        .color-option {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.3s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: white;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .style-option {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333;
+            border-radius: 30px;
+            margin: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: 0.3s;
+        }
+
+        .style-option:hover {
+            border-color: #00ffff;
+        }
+
+        .style-option.active {
+            background: #00ffff;
+            color: #0f2027;
+            border-color: #00ffff;
+        }
+
+        .close-bottom {
+            text-align: center;
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(255,65,108,0.2);
+            border: 1px solid #ff416c;
+            border-radius: 8px;
+            color: #ff416c;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .close-bottom:hover {
+            background: rgba(255,65,108,0.3);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            color: #aaa;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== CROSSHAIR SUPER EKSTREM ========== -->
+    <div id="crosshairEkstrem" class="crosshair-ekstrem">
+        <div id="crosshairUtama" class="crosshair-utama crosshair-default" style="--crosshair-color: #ff0000; --crosshair-size: 40px; --crosshair-thickness: 2px; --crosshair-glow: 10px; --crosshair-dot-size: 4px;"></div>
+    </div>
+
+    <!-- Permission Warning -->
+    <div id="permissionWarning" class="permission-warning">
+        <i class="fas fa-exclamation-triangle" style="font-size: 20px;"></i>
+        <p style="margin: 5px 0;">Agar crosshair muncul di game, aktifkan izin "Tampilkan di atas aplikasi lain"</p>
+        <button class="permission-btn" onclick="requestOverlayPermission()">BUKA PENGATURAN</button>
+    </div>
+
+    <div class="container">
+        <!-- LOGIN PAGE -->
+        <div id="loginPage" class="login-page">
+            <div class="logo-nobita">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="login-header">
+                <h1>PANEL BY ZUAN V2</h1>
+                <p>Masuk untuk mengakses PANEL BY ZUAN</p>
+            </div>
+
+            <div class="input-group">
+                <label><i class="fas fa-user"></i> Username</label>
+                <input type="text" id="username" class="input-field" placeholder="Masukkan username" value="ZuanXiter">
+            </div>
+
+            <div class="input-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="password" class="input-field" placeholder="Masukkan password" value="123456">
+            </div>
+
+            <button class="login-btn" onclick="login()">
+                <i class="fas fa-sign-in-alt"></i> MASUK
+            </button>
+
+            <div class="login-footer">
+                <i class="fas fa-shield-alt"></i> Gunakan username: ZuanXiter
+            </div>
+        </div>
+
+        <!-- HOME PAGE -->
+        <div id="homePage" class="home-page">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-led"></div>
+                <span class="status-text">PANEL MENU READY</span>
+                <span class="status-info">v2.0.1</span>
+            </div>
+
+            <!-- Main Button -->
+            <div class="main-card" onclick="openModMenu()">
+                <div class="main-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="main-title">OPEN PANEL MENU</div>
+                <div class="main-subtitle">Klik untuk membuka panel MOD</div>
+                <div class="badge">
+                    <i class="fas fa-crown"></i> VIP ACCESS
+                </div>
+            </div>
+
+            <!-- Device Info -->
+            <div class="device-info">
+                <div class="info-item">
+                    <div class="info-label">DEVICE</div>
+                    <div class="info-value">POCO X3 PRO</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">ANDROID</div>
+                    <div class="info-value">12</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">STATUS</div>
+                    <div class="info-value" style="color:#00ff00;">ONLINE</div>
+                </div>
+            </div>
+
+            <!-- Crosshair Status -->
+            <div style="background: rgba(0,255,255,0.05); border-radius: 10px; padding: 10px; margin-top: 10px; text-align: center; border: 1px solid #00ffff;">
+                <i class="fas fa-crosshairs" style="color: #00ffff;"></i> 
+                <span style="color: #00ffff; font-weight: 600;">CROSSHAIR: <span id="mainCrosshairStatus">AKTIF</span></span>
+                <span style="color: #aaa; font-size: 11px; display: block; margin-top: 5px;">Crosshair akan tetap muncul di game</span>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p><i class="fas fa-robot"></i> PANEL FF BY ZUAN V2 + CROSSHAIR EKSTREM</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL BY ZUAN MODAL -->
+    <div id="modMenuModal" class="modal">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-robot"></i> PANEL BY ZUAN
+                </div>
+                <span class="close-btn" onclick="closeModMenu()">&times;</span>
+            </div>
+
+            <!-- Search Box -->
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="SEARCH YOUR APPLICATION" value="Injector">
+            </div>
+
+            <!-- App Info -->
+            <div class="app-info">
+                <div class="app-icon">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="app-details">
+                    <div class="app-name">Free Fire</div>
+                    <div class="app-version">FF Max</div>
+                </div>
+                <div class="app-badge">VIP</div>
+            </div>
+
+            <!-- Status Info -->
+            <div class="device-status">
+                <div class="status-row">
+                    <span class="status-label">VIP PANEL BY ZUAN</span>
+                    <span class="status-value">VERSION : FF MAX</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">STATUS</span>
+                    <span class="status-value online"><i class="fas fa-circle"></i> ONLINE</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">DEVICE</span>
+                    <span class="status-value">POCO X3 PRO</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">VERSION</span>
+                    <span class="status-value">12</span>
+                </div>
+            </div>
+
+            <!-- FREE FIRE BUTTONS SECTION -->
+            <div class="ff-buttons-section">
+                <div class="section-title"><i class="fas fa-fire"></i> LAUNCH FREE FIRE</div>
+                <div class="ff-buttons-grid">
+                    <!-- FREE FIRE ORI BUTTON -->
+                    <div class="ff-button ori" onclick="launchFreeFire('ori')">
+                        <div class="ff-icon"><i class="fas fa-fire"></i></div>
+                        <div class="ff-name">FREE FIRE ORI</div>
+                        <div class="ff-desc">Versi Original</div>
+                        <div class="ff-note"><i class="fas fa-rocket"></i> Klik untuk membuka</div>
+                    </div>
+                    
+                    <!-- FREE FIRE MAX BUTTON -->
+                    <div class="ff-button max" onclick="launchFreeFire('max')">
+                        <div class="ff-icon"><i class="fas fa-dragon"></i></div>
+                        <div class="ff-name">FREE FIRE MAX</div>
+                        <div class="ff-desc">HD Graphics</div>
+                        <div class="ff-note"><i class="fas fa-rocket"></i> Klik untuk membuka</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MENU AIM Section -->
+            <div class="menu-section">
+                <div class="section-title">MENU AIM</div>
+                <div class="menu-grid">
+                    <div class="menu-item active" id="aimbotHead">
+                        <div class="menu-item-icon"><i class="fas fa-crosshairs"></i></div>
+                        <div class="menu-item-name">AIMBOT (HEAD)</div>
+                        <div class="menu-item-desc">Auto headshot</div>
+                        <div class="menu-item-toggle">
+                            <span>100%</span>
+                            <div class="toggle-switch active"></div>
+                        </div>
+                    </div>
+                     <div class="menu-item active" id="AnginHs">
+                        <div class="menu-item-icon"><i class="fas fa-fire"></i></div>
+                        <div class="menu-item-name">Angin Hs</div>
+                        <div class="menu-item-desc">Nembak Angin / random HS</div>
+                        <div class="menu-item-toggle">
+                            <span>100%</span>
+                            <div class="toggle-switch active"></div>
+                        </div>
+                    </div>
+                     <div class="menu-item active" id="ClearCahceOtomeatis">
+                        <div class="menu-item-icon"><i class="fas fa-rocket"></i></div>
+                        <div class="menu-item-name">Clear Cahce Otomatis</div>
+                        <div class="menu-item-desc">clear cahce ketika bermain secara otomatis</div>
+                        <div class="menu-item-toggle">
+                            <span>100%</span>
+                            <div class="toggle-switch active"></div>
+                        </div>
+                    </div>
+                    <div class="menu-item active" id="HematBaterai">
+                        <div class="menu-item-icon"><i class="fas fa-battery-full"></i></div>
+                        <div class="menu-item-name">Hemat bateraii</div>
+                        <div class="menu-item-desc">Penghemat baterai agar tidak boros (beta)</div>
+                        <div class="menu-item-toggle">
+                             <span>ON</span>
+                             <div class="toggle-switch active"></div>
+                        </div>
+                    </div>    
+                    <div class="menu-item active" id="aimbotScope">
+                        <div class="menu-item-icon"><i class="fas fa-bullseye"></i></div>
+                        <div class="menu-item-name">AIMBOT SCOPE</div>
+                        <div class="menu-item-desc">Scope aim assist</div>
+                        <div class="menu-item-toggle">
+                            <span>75%</span>
+                            <div class="toggle-switch active"></div>
+                        </div>
+                    </div>
+                    <div class="menu-item active" id="aimlock">
+                        <div class="menu-item-icon"><i class="fas fa-lock"></i></div>
+                        <div class="menu-item-name">AIMLOCK</div>
+                        <div class="menu-item-desc">Auto lock target</div>
+                        <div class="menu-item-toggle">
+                            <span>ON</span>
+                            <div class="toggle-switch active"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CROSSHAIR CUSTOMIZER SECTION -->
+            <div class="crosshair-section">
+                <div class="section-title"><i class="fas fa-crosshairs"></i> CROSSHAIR CUSTOMIZER</div>
+                
+                <!-- Toggle Crosshair -->
+                <div class="menu-item active" id="toggleCrosshair" onclick="toggleCrosshair()">
+                    <div class="menu-item-icon"><i class="fas fa-eye"></i></div>
+                    <div class="menu-item-name">TAMPILKAN CROSSHAIR</div>
+                    <div class="menu-item-desc">Aktifkan crosshair di layar</div>
+                    <div class="menu-item-toggle">
+                        <span id="crosshairStatus">ON</span>
+                        <div class="toggle-switch active" id="crosshairToggle"></div>
+                    </div>
+                </div>
+
+                <!-- Crosshair Preview -->
+                <div class="crosshair-preview">
+                    <div id="previewCrosshair" class="preview-crosshair" style="border-color: #ff0000;"></div>
+                </div>
+
+                <!-- Crosshair Style -->
+                <div class="crosshair-control">
+                    <div class="control-label">
+                        <span>Style Crosshair</span>
+                    </div>
+                    <div>
+                        <span class="style-option active" onclick="changeCrosshairStyle('default')">Default</span>
+                        <span class="style-option" onclick="changeCrosshairStyle('cross')">Cross</span>
+                        <span class="style-option" onclick="changeCrosshairStyle('dot')">Dot</span>
+                        <span class="style-option" onclick="changeCrosshairStyle('circle')">Circle</span>
+                        <span class="style-option" onclick="changeCrosshairStyle('circle-dot')">Circle+Dot</span>
+                        <span class="style-option" onclick="changeCrosshairStyle('plus')">Plus</span>
+                    </div>
+                </div>
+
+                <!-- Crosshair Size -->
+                <div class="crosshair-control">
+                    <div class="control-label">
+                        <span>Ukuran</span>
+                        <span id="sizeValue">40px</span>
+                    </div>
+                    <div class="control-slider">
+                        <input type="range" id="sizeSlider" min="20" max="80" value="40" step="1" oninput="updateCrosshairSize(this.value)">
+                    </div>
+                </div>
+
+                <!-- Crosshair Thickness -->
+                <div class="crosshair-control">
+                    <div class="control-label">
+                        <span>Ketebalan</span>
+                        <span id="thicknessValue">2px</span>
+                    </div>
+                    <div class="control-slider">
+                        <input type="range" id="thicknessSlider" min="1" max="6" value="2" step="1" oninput="updateCrosshairThickness(this.value)">
+                    </div>
+                </div>
+
+                <!-- Crosshair Glow -->
+                <div class="crosshair-control">
+                    <div class="control-label">
+                        <span>Efek Glow</span>
+                        <span id="glowValue">10px</span>
+                    </div>
+                    <div class="control-slider">
+                        <input type="range" id="glowSlider" min="0" max="30" value="10" step="1" oninput="updateCrosshairGlow(this.value)">
+                    </div>
+                </div>
+
+                <!-- Crosshair Dot Size -->
+                <div class="crosshair-control" id="dotSizeControl">
+                    <div class="control-label">
+                        <span>Ukuran Titik</span>
+                        <span id="dotSizeValue">4px</span>
+                    </div>
+                    <div class="control-slider">
+                        <input type="range" id="dotSizeSlider" min="2" max="10" value="4" step="1" oninput="updateCrosshairDotSize(this.value)">
+                    </div>
+                </div>
+
+                <!-- Crosshair Color -->
+                <div class="crosshair-control">
+                    <div class="control-label">
+                        <span>Warna</span>
+                    </div>
+                    <div class="color-picker">
+                        <div class="color-option selected" style="background: #ff0000;" onclick="changeCrosshairColor('#ff0000')"></div>
+                        <div class="color-option" style="background: #00ff00;" onclick="changeCrosshairColor('#00ff00')"></div>
+                        <div class="color-option" style="background: #0000ff;" onclick="changeCrosshairColor('#0000ff')"></div>
+                        <div class="color-option" style="background: #ffff00;" onclick="changeCrosshairColor('#ffff00')"></div>
+                        <div class="color-option" style="background: #ff00ff;" onclick="changeCrosshairColor('#ff00ff')"></div>
+                        <div class="color-option" style="background: #00ffff;" onclick="changeCrosshairColor('#00ffff')"></div>
+                        <div class="color-option" style="background: #ffffff;" onclick="changeCrosshairColor('#ffffff')"></div>
+                        <div class="color-option" style="background: #ff8800;" onclick="changeCrosshairColor('#ff8800')"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Close Button -->
+            <div class="close-bottom" onclick="closeModMenu()">
+                <i class="fas fa-times-circle"></i> CLOSE
+            </div>
+        </div>
+    </div>
+
+    <!-- WARNING MODAL -->
+    <div id="warningModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-exclamation-triangle" style="color:#ffd700;"></i> PERINGATAN
+                </div>
+                <span class="close-btn" onclick="closeWarning()">&times;</span>
+            </div>
+            <div style="text-align: center; margin: 15px 0;">
+                <i class="fas fa-exclamation-circle" style="font-size: 40px; color: #ffd700;"></i>
+                <p style="margin: 10px 0; color: #aaa; font-size: 13px;">INI ADALAH PANEL FF BY ZUAN V2 100% AMAN KARENA KAMI MENGGUNAKAN NEW BYPASS AMAN AKUN UTAMA</p>
+                <p style="color: #ff4444; font-size: 12px;">SEKEDAR INFO: KALO KALIAN RAGU KALIAN BISA MENGGUNAKAN AKUN SMURF / KECIL!</p>
+                <p style="color: #00ffff; margin-top: 8px; font-size: 12px;">V2</p>
+            </div>
+            <button class="login-btn" onclick="closeWarning()" style="background: #ffd700; font-size: 14px;">Mengerti</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== CROSSHAIR VARIABLES ==========
+        let crosshairActive = true;
+        let crosshairStyle = 'default';
+        let crosshairColor = '#ff0000';
+        let crosshairSize = 40;
+        let crosshairThickness = 2;
+        let crosshairGlow = 10;
+        let crosshairDotSize = 4;
+
+        // ========== CROSSHAIR FUNCTIONS ==========
+        function toggleCrosshair() {
+            const container = document.getElementById('crosshairEkstrem');
+            const toggle = document.getElementById('crosshairToggle');
+            const status = document.getElementById('crosshairStatus');
+            const mainStatus = document.getElementById('mainCrosshairStatus');
+            
+            crosshairActive = !crosshairActive;
+            
+            if (crosshairActive) {
+                container.classList.add('active');
+                toggle.classList.add('active');
+                status.textContent = 'ON';
+                if (mainStatus) mainStatus.textContent = 'AKTIF';
+            } else {
+                container.classList.remove('active');
+                toggle.classList.remove('active');
+                status.textContent = 'OFF';
+                if (mainStatus) mainStatus.textContent = 'NONAKTIF';
+            }
+        }
+
+        function updateCrosshair() {
+            const crosshair = document.getElementById('crosshairUtama');
+            const preview = document.getElementById('previewCrosshair');
+            
+            // Remove all style classes
+            crosshair.className = 'crosshair-utama';
+            preview.className = 'preview-crosshair';
+            
+            // Add current style
+            let crosshairClass = '';
+            
+            switch(crosshairStyle) {
+                case 'default':
+                    crosshairClass = 'crosshair-default';
+                    break;
+                case 'cross':
+                    crosshairClass = 'crosshair-cross';
+                    break;
+                case 'dot':
+                    crosshairClass = 'crosshair-dot';
+                    break;
+                case 'circle':
+                    crosshairClass = 'crosshair-circle';
+                    break;
+                case 'circle-dot':
+                    crosshairClass = 'crosshair-circle-dot';
+                    break;
+                case 'plus':
+                    crosshairClass = 'crosshair-plus';
+                    break;
+            }
+            
+            crosshair.classList.add(crosshairClass);
+            
+            // Update preview class
+            let previewClass = 'preview-crosshair ' + crosshairClass;
+            preview.className = previewClass;
+            
+            // Update CSS variables
+            crosshair.style.setProperty('--crosshair-color', crosshairColor);
+            crosshair.style.setProperty('--crosshair-size', crosshairSize + 'px');
+            crosshair.style.setProperty('--crosshair-thickness', crosshairThickness + 'px');
+            crosshair.style.setProperty('--crosshair-glow', crosshairGlow + 'px');
+            crosshair.style.setProperty('--crosshair-dot-size', crosshairDotSize + 'px');
+            
+            // Update preview
+            preview.style.borderColor = crosshairColor;
+            preview.style.backgroundColor = crosshairStyle === 'dot' ? crosshairColor : 'transparent';
+        }
+
+        function changeCrosshairStyle(style) {
+            crosshairStyle = style;
+            
+            // Update active class on style options
+            document.querySelectorAll('.style-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Show/hide dot size control
+            const dotControl = document.getElementById('dotSizeControl');
+            if (style === 'default' || style === 'circle-dot' || style === 'dot') {
+                dotControl.style.display = 'block';
+            } else {
+                dotControl.style.display = 'none';
+            }
+            
+            updateCrosshair();
+        }
+
+        function updateCrosshairSize(value) {
+            crosshairSize = parseInt(value);
+            document.getElementById('sizeValue').textContent = value + 'px';
+            updateCrosshair();
+        }
+
+        function updateCrosshairThickness(value) {
+            crosshairThickness = parseInt(value);
+            document.getElementById('thicknessValue').textContent = value + 'px';
+            updateCrosshair();
+        }
+
+        function updateCrosshairGlow(value) {
+            crosshairGlow = parseInt(value);
+            document.getElementById('glowValue').textContent = value + 'px';
+            updateCrosshair();
+        }
+
+        function updateCrosshairDotSize(value) {
+            crosshairDotSize = parseInt(value);
+            document.getElementById('dotSizeValue').textContent = value + 'px';
+            updateCrosshair();
+        }
+
+        function changeCrosshairColor(color) {
+            crosshairColor = color;
+            
+            // Update active class on color options
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            updateCrosshair();
+        }
+
+        // ========== OVERLAY PERMISSION ==========
+        function requestOverlayPermission() {
+            // Untuk Android, buka pengaturan overlay
+            alert('Untuk mengaktifkan crosshair di game:\n\n1. Buka Settings > Apps > Panel FF\n2. Pilih "Display over other apps"\n3. Aktifkan izin tersebut\n\nCrosshair akan muncul di game setelah izin diberikan.');
+            
+            // Simulasi buka pengaturan (hanya guidance)
+            document.getElementById('permissionWarning').classList.remove('show');
+        }
+
+        // ========== LOGIN FUNCTION ==========
+        function login() {
+            const username = document.getElementById('username').value;
+            
+            if (username === 'ZuanXiter') {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('homePage').style.display = 'block';
+                
+                // Aktifkan crosshair
+                setTimeout(() => {
+                    toggleCrosshair();
+                }, 100);
+                
+                // Tampilkan permission warning
+                setTimeout(() => {
+                    document.getElementById('permissionWarning').classList.add('show');
+                }, 1000);
+                
+                setTimeout(() => {
+                    document.getElementById('warningModal').classList.add('show');
+                }, 500);
+            } else {
+                alert('❌ Username salah! Gunakan username: ZuanXiter');
+            }
+        }
+
+        // ========== PANEL FUNCTIONS ==========
+        function openModMenu() {
+            document.getElementById('modMenuModal').classList.add('show');
+        }
+
+        function closeModMenu() {
+            document.getElementById('modMenuModal').classList.remove('show');
+        }
+
+        function closeWarning() {
+            document.getElementById('warningModal').classList.remove('show');
+        }
+
+        // ========== FREE FIRE LAUNCH FUNCTIONS ==========
+        function launchFreeFire(version) {
+            const gameName = version === 'ori' ? 'Free Fire ORI' : 'Free Fire MAX';
+            
+            // Cek apakah crosshair aktif
+            if (crosshairActive) {
+                alert(`🚀 Membuka ${gameName}...\n\n✅ CROSSHAIR AKAN TETAP MUNCUL DI LAYAR GAME!\n\nPastikan izin "Tampilkan di atas aplikasi lain" sudah diaktifkan.\n\nUntuk menghilangkan, nonaktifkan fitur crosshair di panel.`);
+            } else {
+                alert(`🚀 Membuka ${gameName}...\n\nCrosshair tidak aktif. Aktifkan di panel jika ingin crosshair muncul.`);
+            }
+            
+            // Simpan status crosshair di localStorage
+            localStorage.setItem('crosshairActive', crosshairActive ? 'true' : 'false');
+            localStorage.setItem('crosshairStyle', crosshairStyle);
+            localStorage.setItem('crosshairColor', crosshairColor);
+            localStorage.setItem('crosshairSize', crosshairSize);
+            localStorage.setItem('crosshairThickness', crosshairThickness);
+            localStorage.setItem('crosshairGlow', crosshairGlow);
+            localStorage.setItem('crosshairDotSize', crosshairDotSize);
+            
+            // Buka game
+            if (version === 'ori') {
+                window.location.href = 'intent://com.dts.freefireth/#Intent;scheme=android-app;end';
+            } else {
+                window.location.href = 'intent://com.dts.freefiremax/#Intent;scheme=android-app;end';
+            }
+        }
+
+        // ========== LOAD CROSSHAIR SETTINGS ==========
+        function loadCrosshairSettings() {
+            const savedActive = localStorage.getItem('crosshairActive');
+            if (savedActive === 'false') {
+                crosshairActive = false;
+                document.getElementById('crosshairEkstrem').classList.remove('active');
+                document.getElementById('crosshairToggle').classList.remove('active');
+                document.getElementById('crosshairStatus').textContent = 'OFF';
+            }
+            
+            const savedStyle = localStorage.getItem('crosshairStyle');
+            if (savedStyle) {
+                crosshairStyle = savedStyle;
+                // Update active style
+                document.querySelectorAll('.style-option').forEach(opt => {
+                    opt.classList.remove('active');
+                    if (opt.textContent.trim().toLowerCase().includes(savedStyle)) {
+                        opt.classList.add('active');
+                    }
+                });
+            }
+            
+            const savedColor = localStorage.getItem('crosshairColor');
+            if (savedColor) {
+                crosshairColor = savedColor;
+                // Update active color
+                document.querySelectorAll('.color-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                    if (opt.style.backgroundColor === savedColor || 
+                        opt.style.background === savedColor) {
+                        opt.classList.add('selected');
+                    }
+                });
+            }
+            
+            if (localStorage.getItem('crosshairSize')) {
+                crosshairSize = parseInt(localStorage.getItem('crosshairSize'));
+                document.getElementById('sizeSlider').value = crosshairSize;
+                document.getElementById('sizeValue').textContent = crosshairSize + 'px';
+            }
+            
+            if (localStorage.getItem('crosshairThickness')) {
+                crosshairThickness = parseInt(localStorage.getItem('crosshairThickness'));
+                document.getElementById('thicknessSlider').value = crosshairThickness;
+                document.getElementById('thicknessValue').textContent = crosshairThickness + 'px';
+            }
+            
+            if (localStorage.getItem('crosshairGlow')) {
+                crosshairGlow = parseInt(localStorage.getItem('crosshairGlow'));
+                document.getElementById('glowSlider').value = crosshairGlow;
+                document.getElementById('glowValue').textContent = crosshairGlow + 'px';
+            }
+            
+            if (localStorage.getItem('crosshairDotSize')) {
+                crosshairDotSize = parseInt(localStorage.getItem('crosshairDotSize'));
+                document.getElementById('dotSizeSlider').value = crosshairDotSize;
+                document.getElementById('dotSizeValue').textContent = crosshairDotSize + 'px';
+            }
+            
+            updateCrosshair();
+        }
+
+        // ========== TOGGLE SWITCHES ==========
+        document.querySelectorAll('.toggle-switch').forEach((toggle, index) => {
+            if (toggle.id !== 'crosshairToggle') {
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    this.classList.toggle('active');
+                    
+                    const menuItem = this.closest('.menu-item');
+                    if (menuItem) {
+                        const itemName = menuItem.querySelector('.menu-item-name').textContent;
+                        const statusSpan = menuItem.querySelector('.menu-item-toggle span:first-child');
+                        
+                        if (statusSpan) {
+                            if (itemName.includes('HEAD')) {
+                                statusSpan.textContent = this.classList.contains('active') ? '100%' : '0%';
+                            } else if (itemName.includes('SCOPE')) {
+                                statusSpan.textContent = this.classList.contains('active') ? '75%' : '0%';
+                            } else {
+                                statusSpan.textContent = this.classList.contains('active') ? 'ON' : 'OFF';
+                            }
+                        }
+                        
+                        if (this.classList.contains('active')) {
+                            menuItem.classList.add('active');
+                        } else {
+                            menuItem.classList.remove('active');
+                        }
+                    }
+                });
+            }
+        });
+
+        // ========== MENU ITEM CLICK ==========
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const toggle = this.querySelector('.toggle-switch');
+                if (toggle && toggle.id !== 'crosshairToggle') {
+                    toggle.click();
+                }
+            });
+        });
+
+        // ========== INIT ==========
+        // Load saved settings
+        loadCrosshairSettings();
+        
+        // Deteksi orientasi layar
+        window.addEventListener('resize', function() {
+            // Crosshair tetap di tengah
+            updateCrosshair();
+        });
+    </script>
+</body>
+</html>
