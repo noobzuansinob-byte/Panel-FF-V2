@@ -1,0 +1,6 @@
+{
+  "name": "Krah-Tools",
+  "description": "Cyber Intelligence and Tracking Terminal interface with real-time telemetry, geolocation visualizer, and target analysis modules.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
